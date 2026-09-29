@@ -1,0 +1,100 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+entity test_tb is
+end entity;
+architecture test_tb of test_tb is
+  signal x_0: std_logic_vector(15 downto 0);
+  signal x_1: std_logic_vector(15 downto 0);
+  signal y_0: std_logic_vector(23 downto 0);
+  signal y_1: std_logic_vector(23 downto 0);
+  signal config_select: std_logic_vector(1 downto 0);
+  signal clk: std_logic := '0';
+  signal x_0_int: signed(15 downto 0);
+  signal x_1_int: signed(15 downto 0);
+  signal y_0_int: signed(23 downto 0);
+  signal y_0_ref: signed(23 downto 0);
+  signal y_0_ref_0: signed(23 downto 0);
+  signal y_0_ref_1: signed(23 downto 0);
+  signal y_0_ref_2: signed(23 downto 0);
+  signal y_1_int: signed(23 downto 0);
+  signal y_1_ref: signed(23 downto 0);
+  signal y_1_ref_0: signed(23 downto 0);
+  signal y_1_ref_1: signed(23 downto 0);
+  signal y_1_ref_2: signed(23 downto 0);
+    signal ok: std_logic;
+begin
+  process
+    variable seed1: positive;
+    variable seed2: positive;
+    variable rnd: real;
+    variable rnd_int: integer;
+    variable num_tests: integer := 0;
+  begin
+    if num_tests >= 69420 then
+      wait; -- finished
+    end if;
+    wait for 1 ns;
+    uniform(seed1, seed2, rnd);
+    rnd_int := integer(floor(rnd * 65536.0))-32768;
+    x_0 <= std_logic_vector(to_signed(rnd_int, 16));
+    uniform(seed1, seed2, rnd);
+    rnd_int := integer(floor(rnd * 65536.0))-32768;
+    x_1 <= std_logic_vector(to_signed(rnd_int, 16));
+    uniform(seed1, seed2, rnd);
+    rnd_int := integer(floor(rnd * 3.0));
+    config_select <= std_logic_vector(to_unsigned(rnd_int, 2));
+    wait for 1 ns;
+    if y_0_int = y_0_ref_2 and y_1_int = y_1_ref_2 then
+      ok <= '1';
+    else
+      ok <= '0';
+    end if;
+    if num_tests >= 2 then
+      assert (y_0_int = y_0_ref_2 and y_1_int = y_1_ref_2) report "ERROR IN SIMULATION DETECTED!" severity FAILURE;
+    end if;
+    num_tests := num_tests + 1;
+    wait for 1 ns;
+    clk <= '1';
+    wait for 3 ns;
+    clk <= '0';
+  end process;
+  DUT: entity work.const_mul
+    port map(
+      config_select => config_select,
+      x_0 => x_0,
+      x_1 => x_1,
+      y_0 => y_0,
+      y_1 => y_1,
+      clk => clk
+    );
+  x_0_int <= signed(x_0);
+  x_1_int <= signed(x_1);
+  y_0_int <= signed(y_0);
+  y_1_int <= signed(y_1);
+  with config_select select y_0_ref <= 
+    resize((129)*x_0_int + (0)*x_1_int, 24) when "00",
+    resize((128)*x_0_int + (-16)*x_1_int, 24) when "01",
+    resize((125)*x_0_int + (-32)*x_1_int, 24) when others;
+  with config_select select y_1_ref <= 
+    resize((129)*x_1_int + (0)*x_0_int, 24) when "00",
+    resize((128)*x_1_int + (16)*x_0_int, 24) when "01",
+    resize((125)*x_1_int + (32)*x_0_int, 24) when others;
+  y_0_ref_0 <= y_0_ref;
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      y_0_ref_1 <= y_0_ref_0;
+      y_0_ref_2 <= y_0_ref_1;
+    end if;
+  end process;
+  y_1_ref_0 <= y_1_ref;
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      y_1_ref_1 <= y_1_ref_0;
+      y_1_ref_2 <= y_1_ref_1;
+    end if;
+  end process;
+end architecture;

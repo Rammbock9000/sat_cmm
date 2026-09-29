@@ -1,0 +1,5 @@
+Finished solving after 259200 seconds
+# Add optimal = 0
+# Mux optimal = 0
+# Mux registers optimal = 0
+# FAs optimal = 0

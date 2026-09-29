@@ -1,0 +1,5 @@
+PAG Split failed for experiment rnd_rpmcm_w12_o5_c3/2803;2778;4017;1447;896|1519;2149;364;977;2656|1798;1226;1913;838;1254: returncode=255
+stdout:
+
+stderr:
+[PAG_SPLIT] Source graph is incompatible because it contains negative shifts.
